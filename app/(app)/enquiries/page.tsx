@@ -16,11 +16,9 @@ export default function EnquiriesPage() {
             {mockEnquiries.length} total enquiries
           </p>
         </div>
-        <Button asChild size="sm">
-          <Link href="/enquiries/new">
+        <Button size="sm" render={<Link href="/enquiries/new" />}>
             <Plus data-icon="inline-start" />
             New Enquiry
-          </Link>
         </Button>
       </div>
 

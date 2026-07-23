@@ -1,12 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -63,6 +61,27 @@ function SectionHeader({ icon: Icon, title, description }: {
   )
 }
 
+function SaveButton({
+  section,
+  saved,
+  onSave,
+}: {
+  section: string
+  saved: boolean
+  onSave: (section: string) => void
+}) {
+  return (
+    <Button
+      size="sm"
+      className="h-8 text-xs"
+      onClick={() => onSave(section)}
+    >
+      <Save data-icon="inline-start" className="size-3.5" />
+      {saved ? 'Saved!' : 'Save Changes'}
+    </Button>
+  )
+}
+
 export function SettingsPanel({ settings: initial, users: initialUsers }: SettingsPanelProps) {
   const [settings, setSettings] = useState<OrgSettings>(initial)
   const [users, setUsers] = useState<User[]>(initialUsers)
@@ -95,17 +114,6 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
     // TODO: PATCH /api/users/:id with active: false
     setUsers((prev) => prev.map((u) => u.id === id ? { ...u, active: !u.active } : u))
   }
-
-  const SaveButton = ({ section }: { section: string }) => (
-    <Button
-      size="sm"
-      className="h-8 text-xs"
-      onClick={() => handleSave(section)}
-    >
-      <Save data-icon="inline-start" className="size-3.5" />
-      {savedSections.includes(section) ? 'Saved!' : 'Save Changes'}
-    </Button>
-  )
 
   return (
     <div className="flex flex-col gap-0 px-6 py-5">
@@ -230,7 +238,11 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                 </div>
               </div>
               <div className="mt-5 flex justify-end">
-                <SaveButton section="organisation" />
+                <SaveButton
+                  section="organisation"
+                  saved={savedSections.includes('organisation')}
+                  onSave={handleSave}
+                />
               </div>
             </CardContent>
           </Card>
@@ -352,7 +364,11 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                 </div>
               </div>
               <div className="mt-5 flex justify-end">
-                <SaveButton section="numbering" />
+                <SaveButton
+                  section="numbering"
+                  saved={savedSections.includes('numbering')}
+                  onSave={handleSave}
+                />
               </div>
             </CardContent>
           </Card>
@@ -418,7 +434,11 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                 ))}
               </div>
               <div className="mt-5 flex justify-end">
-                <SaveButton section="defaults" />
+                <SaveButton
+                  section="defaults"
+                  saved={savedSections.includes('defaults')}
+                  onSave={handleSave}
+                />
               </div>
             </CardContent>
           </Card>
@@ -470,7 +490,11 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                 </div>
               </div>
               <div className="mt-5 flex justify-end">
-                <SaveButton section="financials" />
+                <SaveButton
+                  section="financials"
+                  saved={savedSections.includes('financials')}
+                  onSave={handleSave}
+                />
               </div>
             </CardContent>
           </Card>

@@ -28,11 +28,13 @@ export function QuoteRevisionsTab({ revisions, enquiryId }: QuoteRevisionsTabPro
         <p className="text-sm font-medium text-foreground">
           {revisions.length} revision{revisions.length !== 1 ? 's' : ''}
         </p>
-        <Button size="sm" className="h-8 text-xs" asChild>
-          <Link href={`/enquiries/${enquiryId}/quote`}>
+        <Button
+          size="sm"
+          className="h-8 text-xs"
+          render={<Link href={`/enquiries/${enquiryId}/quote`} />}
+        >
             <Plus data-icon="inline-start" className="size-3.5" />
             New Revision
-          </Link>
         </Button>
       </div>
 
@@ -105,11 +107,14 @@ export function QuoteRevisionsTab({ revisions, enquiryId }: QuoteRevisionsTabPro
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <Button variant="ghost" size="icon" className="size-7" asChild>
-                          <Link href={`/enquiries/${enquiryId}/quote`}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-7"
+                          render={<Link href={`/enquiries/${enquiryId}/quote`} />}
+                        >
                             <ExternalLink className="size-3.5" />
                             <span className="sr-only">Open quote</span>
-                          </Link>
                         </Button>
                       </td>
                     </tr>

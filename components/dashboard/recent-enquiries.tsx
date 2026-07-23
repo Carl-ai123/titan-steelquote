@@ -18,11 +18,14 @@ export function RecentEnquiries({ enquiries }: RecentEnquiriesProps) {
           <CardTitle className="text-sm font-semibold text-foreground">
             Recent Enquiries
           </CardTitle>
-          <Button variant="ghost" size="sm" className="text-xs h-7 px-2" asChild>
-            <Link href="/enquiries">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs h-7 px-2"
+            render={<Link href="/enquiries" />}
+          >
               View all
               <ArrowRight data-icon="inline-end" className="size-3" />
-            </Link>
           </Button>
         </div>
       </CardHeader>

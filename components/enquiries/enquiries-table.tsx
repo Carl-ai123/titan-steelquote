@@ -33,7 +33,7 @@ import {
 } from 'lucide-react'
 import { formatGBP, formatDate, daysFromNow } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import type { Enquiry, EnquiryStatus, User } from '@/lib/types'
+import { ENQUIRY_STATUSES, type Enquiry, type User } from '@/lib/types'
 
 type SortField =
   | 'enquiryNumber'
@@ -49,15 +49,50 @@ type SortField =
 
 type SortDir = 'asc' | 'desc'
 
-const ALL_STATUSES: EnquiryStatus[] = [
-  'New', 'In Progress', 'Awaiting Info', 'Priced', 'Submitted', 'Won', 'Lost', 'No Bid', 'Cancelled',
-]
-
 const PAGE_SIZES = [10, 25, 50]
 
 interface EnquiriesTableProps {
   enquiries: Enquiry[]
   estimators: User[]
+}
+
+interface SortableHeaderProps {
+  field: SortField
+  label: string
+  className?: string
+  activeField: SortField
+  direction: SortDir
+  onSort: (field: SortField) => void
+}
+
+function SortableHeader({
+  field,
+  label,
+  className,
+  activeField,
+  direction,
+  onSort,
+}: SortableHeaderProps) {
+  const sortIcon =
+    activeField !== field ? (
+      <ChevronUp className="size-3 text-muted-foreground/40" />
+    ) : direction === 'asc' ? (
+      <ChevronUp className="size-3 text-primary" />
+    ) : (
+      <ChevronDown className="size-3 text-primary" />
+    )
+
+  return (
+    <th className={cn('pb-2', className)}>
+      <button
+        onClick={() => onSort(field)}
+        className="flex items-center gap-1 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground"
+      >
+        {label}
+        {sortIcon}
+      </button>
+    </th>
+  )
 }
 
 export function EnquiriesTable({ enquiries, estimators }: EnquiriesTableProps) {
@@ -125,8 +160,8 @@ export function EnquiriesTable({ enquiries, estimators }: EnquiriesTableProps) {
           bv = b.probability
           break
         default:
-          av = (a as Record<string, unknown>)[sortField] as string
-          bv = (b as Record<string, unknown>)[sortField] as string
+          av = a[sortField] ?? ''
+          bv = b[sortField] ?? ''
       }
       if (av < bv) return sortDir === 'asc' ? -1 : 1
       if (av > bv) return sortDir === 'asc' ? 1 : -1
@@ -151,38 +186,6 @@ export function EnquiriesTable({ enquiries, estimators }: EnquiriesTableProps) {
     estimatorFilter !== 'all' ||
     deadlineFilter !== 'all'
 
-  function SortIcon({ field }: { field: SortField }) {
-    if (sortField !== field)
-      return <ChevronUp className="size-3 text-muted-foreground/40" />
-    return sortDir === 'asc' ? (
-      <ChevronUp className="size-3 text-primary" />
-    ) : (
-      <ChevronDown className="size-3 text-primary" />
-    )
-  }
-
-  function SortableHeader({
-    field,
-    label,
-    className,
-  }: {
-    field: SortField
-    label: string
-    className?: string
-  }) {
-    return (
-      <th className={cn('pb-2', className)}>
-        <button
-          onClick={() => handleSort(field)}
-          className="flex items-center gap-1 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground"
-        >
-          {label}
-          <SortIcon field={field} />
-        </button>
-      </th>
-    )
-  }
-
   return (
     <div className="flex flex-col gap-4">
       {/* Filter bar */}
@@ -197,19 +200,19 @@ export function EnquiriesTable({ enquiries, estimators }: EnquiriesTableProps) {
           />
         </div>
 
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
+        <Select value={statusFilter} onValueChange={(v) => { if (v) setStatusFilter(v); setPage(1) }}>
           <SelectTrigger className="h-8 w-[140px] text-sm">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            {ALL_STATUSES.map((s) => (
+            {ENQUIRY_STATUSES.map((s) => (
               <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select value={estimatorFilter} onValueChange={(v) => { setEstimatorFilter(v); setPage(1) }}>
+        <Select value={estimatorFilter} onValueChange={(v) => { if (v) setEstimatorFilter(v); setPage(1) }}>
           <SelectTrigger className="h-8 w-[150px] text-sm">
             <SelectValue placeholder="All Estimators" />
           </SelectTrigger>
@@ -221,7 +224,7 @@ export function EnquiriesTable({ enquiries, estimators }: EnquiriesTableProps) {
           </SelectContent>
         </Select>
 
-        <Select value={deadlineFilter} onValueChange={(v) => { setDeadlineFilter(v); setPage(1) }}>
+        <Select value={deadlineFilter} onValueChange={(v) => { if (v) setDeadlineFilter(v); setPage(1) }}>
           <SelectTrigger className="h-8 w-[150px] text-sm">
             <SelectValue placeholder="All Deadlines" />
           </SelectTrigger>
@@ -251,16 +254,28 @@ export function EnquiriesTable({ enquiries, estimators }: EnquiriesTableProps) {
           <table className="w-full data-table">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <SortableHeader field="enquiryNumber" label="Enquiry #" className="pl-4 py-2.5" />
-                <SortableHeader field="customerName" label="Customer" className="py-2.5" />
-                <SortableHeader field="project" label="Project" className="py-2.5" />
-                <SortableHeader field="receivedDate" label="Received" className="py-2.5" />
-                <SortableHeader field="tenderDeadline" label="Deadline" className="py-2.5" />
-                <SortableHeader field="estimatorName" label="Estimator" className="py-2.5" />
-                <SortableHeader field="status" label="Status" className="py-2.5" />
-                <SortableHeader field="estimatedValue" label="Value" className="py-2.5 text-right" />
-                <SortableHeader field="probability" label="Prob." className="py-2.5 text-right" />
-                <SortableHeader field="lastUpdated" label="Updated" className="py-2.5" />
+                {[
+                  ['enquiryNumber', 'Enquiry #', 'pl-4 py-2.5'],
+                  ['customerName', 'Customer', 'py-2.5'],
+                  ['project', 'Project', 'py-2.5'],
+                  ['receivedDate', 'Received', 'py-2.5'],
+                  ['tenderDeadline', 'Deadline', 'py-2.5'],
+                  ['estimatorName', 'Estimator', 'py-2.5'],
+                  ['status', 'Status', 'py-2.5'],
+                  ['estimatedValue', 'Value', 'py-2.5 text-right'],
+                  ['probability', 'Prob.', 'py-2.5 text-right'],
+                  ['lastUpdated', 'Updated', 'py-2.5'],
+                ].map(([field, label, className]) => (
+                  <SortableHeader
+                    key={field}
+                    field={field as SortField}
+                    label={label}
+                    className={className}
+                    activeField={sortField}
+                    direction={sortDir}
+                    onSort={handleSort}
+                  />
+                ))}
                 <th className="py-2.5 pr-3 w-10" />
               </tr>
             </thead>
@@ -360,11 +375,9 @@ export function EnquiriesTable({ enquiries, estimators }: EnquiriesTableProps) {
                             <MoreHorizontal className="size-3.5" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-40">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/enquiries/${enq.id}`}>
+                            <DropdownMenuItem render={<Link href={`/enquiries/${enq.id}`} />}>
                                 <Eye className="size-3.5 mr-2" />
                                 Open
-                              </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Pencil className="size-3.5 mr-2" />
@@ -391,7 +404,7 @@ export function EnquiriesTable({ enquiries, estimators }: EnquiriesTableProps) {
             <span className="text-xs text-muted-foreground">Rows per page</span>
             <Select
               value={String(pageSize)}
-              onValueChange={(v) => { setPageSize(Number(v)); setPage(1) }}
+              onValueChange={(v) => { if (v) setPageSize(Number(v)); setPage(1) }}
             >
               <SelectTrigger className="h-7 w-16 text-xs">
                 <SelectValue />

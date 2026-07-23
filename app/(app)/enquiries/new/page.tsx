@@ -9,11 +9,14 @@ export default function NewEnquiryPage() {
     <div className="flex flex-col gap-5 p-6">
       {/* Breadcrumb / Back */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-          <Link href="/enquiries">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2 text-xs"
+          render={<Link href="/enquiries" />}
+        >
             <ChevronLeft data-icon="inline-start" className="size-3" />
             Enquiries
-          </Link>
         </Button>
         <span className="text-muted-foreground/40 text-sm">/</span>
         <span className="text-xs text-muted-foreground">New Enquiry</span>

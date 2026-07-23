@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Building2, Printer, Download, Pencil } from 'lucide-react'
-import { formatGBP, formatDate, formatPercent } from '@/lib/format'
+import { formatGBP } from '@/lib/format'
 import type { Enquiry, EstimateSummary, Customer } from '@/lib/types'
 
 interface QuotePreviewProps {
@@ -44,14 +43,19 @@ const DEFAULT_ASSUMPTIONS = [
 ]
 
 export function QuotePreview({ enquiry, estimate, customer }: QuotePreviewProps) {
-  const quoteNumber = enquiry.revisions[0]?.quoteNumber ?? 'QTE-2025-DRAFT'
-  const revision = enquiry.revisions[0]?.revision ?? 1
-  const issueDate = new Date().toLocaleDateString('en-GB', {
+  const currentRevision = enquiry.revisions[0]
+  const quoteNumber = currentRevision?.quoteNumber ?? 'QTE-2025-DRAFT'
+  const revision = currentRevision?.revision ?? 1
+  const issueDateSource = currentRevision?.issuedAt ?? enquiry.lastUpdated
+  const validityDate = new Date(issueDateSource)
+  validityDate.setDate(validityDate.getDate() + 60)
+
+  const issueDate = new Date(issueDateSource).toLocaleDateString('en-GB', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
   })
-  const validUntil = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+  const validUntil = new Date(currentRevision?.validUntil ?? validityDate).toLocaleDateString('en-GB', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
