@@ -11,7 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
 import {
   ChevronLeft,
   Pencil,
@@ -35,6 +34,7 @@ import { EstimateTabInline } from '@/components/estimate/estimate-tab-inline'
 import { QuoteRevisionsTab } from '@/components/enquiries/quote-revisions-tab'
 import { ActivityTab } from '@/components/enquiries/activity-tab'
 import { formatDate } from '@/lib/format'
+import { STATUS_TRANSITIONS } from '@/lib/types'
 import type {
   Enquiry,
   Document,
@@ -44,18 +44,6 @@ import type {
   EstimateSummary,
   EnquiryStatus,
 } from '@/lib/types'
-
-const STATUS_TRANSITIONS: Record<EnquiryStatus, EnquiryStatus[]> = {
-  New: ['In Progress', 'Awaiting Info', 'No Bid', 'Cancelled'],
-  'In Progress': ['Awaiting Info', 'Priced', 'No Bid', 'Cancelled'],
-  'Awaiting Info': ['In Progress', 'No Bid', 'Cancelled'],
-  Priced: ['Submitted', 'In Progress', 'No Bid', 'Cancelled'],
-  Submitted: ['Won', 'Lost', 'Priced'],
-  Won: ['Cancelled'],
-  Lost: ['In Progress'],
-  'No Bid': ['In Progress'],
-  Cancelled: [],
-}
 
 interface EnquiryWorkspaceProps {
   enquiry: Enquiry
@@ -90,11 +78,14 @@ export function EnquiryWorkspace({
       <div className="border-b border-border bg-card px-6 py-4">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-3">
-          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" asChild>
-            <Link href="/enquiries">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-xs"
+            render={<Link href="/enquiries" />}
+          >
               <ChevronLeft data-icon="inline-start" className="size-3" />
               Enquiries
-            </Link>
           </Button>
           <span className="text-muted-foreground/40 text-sm">/</span>
           <span className="text-xs text-muted-foreground">{enquiry.enquiryNumber}</span>

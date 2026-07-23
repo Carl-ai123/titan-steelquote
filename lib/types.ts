@@ -4,16 +4,19 @@
  * Canonical enquiry statuses — single source of truth for the whole application.
  * Do NOT add statuses here without updating STATUS_TRANSITIONS and StatusBadge.
  */
-export type EnquiryStatus =
-  | 'New'
-  | 'Reviewing'
-  | 'Estimating'
-  | 'Awaiting Clarification'
-  | 'Internal Approval'
-  | 'Quoted'
-  | 'Won'
-  | 'Lost'
-  | 'Withdrawn'
+export const ENQUIRY_STATUSES = [
+  'New',
+  'Reviewing',
+  'Estimating',
+  'Awaiting Clarification',
+  'Internal Approval',
+  'Quoted',
+  'Won',
+  'Lost',
+  'Withdrawn',
+] as const
+
+export type EnquiryStatus = (typeof ENQUIRY_STATUSES)[number]
 
 /** Ordered workflow stages — used to drive progress indicators */
 export const WORKFLOW_STAGES = [
@@ -38,6 +41,24 @@ export const LIVE_STATUSES: EnquiryStatus[] = [
   'Internal Approval',
   'Quoted',
 ]
+
+/**
+ * Permitted workflow transitions.
+ *
+ * This is the single source of truth for UI controls today and will also be
+ * enforced by the server when persistence is introduced.
+ */
+export const STATUS_TRANSITIONS: Record<EnquiryStatus, readonly EnquiryStatus[]> = {
+  New: ['Reviewing', 'Withdrawn'],
+  Reviewing: ['Estimating', 'Awaiting Clarification', 'Withdrawn'],
+  Estimating: ['Awaiting Clarification', 'Internal Approval', 'Withdrawn'],
+  'Awaiting Clarification': ['Reviewing', 'Estimating', 'Withdrawn'],
+  'Internal Approval': ['Estimating', 'Quoted', 'Withdrawn'],
+  Quoted: ['Won', 'Lost', 'Estimating', 'Withdrawn'],
+  Won: [],
+  Lost: [],
+  Withdrawn: [],
+}
 
 export type EnquirySource =
   | 'Client Direct'

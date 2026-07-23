@@ -3,11 +3,12 @@ import { RecentEnquiries } from '@/components/dashboard/recent-enquiries'
 import { UpcomingDeadlines } from '@/components/dashboard/upcoming-deadlines'
 import { EnquiryStatusChart } from '@/components/dashboard/enquiry-status-chart'
 import { dashboardStats, mockEnquiries } from '@/lib/mock-data'
+import { LIVE_STATUSES } from '@/lib/types'
 
 export default function DashboardPage() {
   // TODO: Fetch live stats from API/database
   const upcomingDeadlines = mockEnquiries
-    .filter((e) => ['New', 'In Progress', 'Awaiting Info', 'Priced'].includes(e.status))
+    .filter((enquiry) => LIVE_STATUSES.includes(enquiry.status))
     .sort(
       (a, b) =>
         new Date(a.tenderDeadline).getTime() - new Date(b.tenderDeadline).getTime(),

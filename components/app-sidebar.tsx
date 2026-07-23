@@ -7,7 +7,6 @@ import {
   FileText,
   Users,
   BarChart2,
-  Hammer,
   Settings,
   ChevronDown,
   Package,

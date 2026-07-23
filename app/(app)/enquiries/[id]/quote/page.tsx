@@ -18,11 +18,14 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
     <div className="flex flex-col min-h-full">
       {/* Toolbar */}
       <div className="border-b border-border bg-card px-6 py-3 flex items-center gap-3">
-        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-          <Link href={`/enquiries/${id}`}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2 text-xs"
+          render={<Link href={`/enquiries/${id}`} />}
+        >
             <ChevronLeft data-icon="inline-start" className="size-3" />
             Back to Enquiry
-          </Link>
         </Button>
         <span className="text-muted-foreground/40">|</span>
         <span className="text-xs text-muted-foreground">

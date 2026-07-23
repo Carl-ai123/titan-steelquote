@@ -109,7 +109,7 @@ export function NewEnquiryForm({ customers, estimators }: NewEnquiryFormProps) {
                   </Label>
                   <Select
                     value={formData.customerId}
-                    onValueChange={(v) => set('customerId', v)}
+                    onValueChange={(v) => v && set('customerId', v)}
                   >
                     <SelectTrigger
                       id="customerId"
@@ -330,7 +330,7 @@ export function NewEnquiryForm({ customers, estimators }: NewEnquiryFormProps) {
                   </Label>
                   <Select
                     value={formData.estimatorId}
-                    onValueChange={(v) => set('estimatorId', v)}
+                    onValueChange={(v) => v && set('estimatorId', v)}
                   >
                     <SelectTrigger
                       id="estimatorId"
@@ -360,7 +360,7 @@ export function NewEnquiryForm({ customers, estimators }: NewEnquiryFormProps) {
                   </Label>
                   <Select
                     value={formData.source}
-                    onValueChange={(v) => set('source', v)}
+                    onValueChange={(v) => v && set('source', v)}
                   >
                     <SelectTrigger
                       id="source"

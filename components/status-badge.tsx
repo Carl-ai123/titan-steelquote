@@ -12,20 +12,24 @@ const statusConfig: Record<
     label: 'New',
     className: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-50',
   },
-  'In Progress': {
-    label: 'In Progress',
+  Reviewing: {
+    label: 'Reviewing',
+    className: 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-50',
+  },
+  Estimating: {
+    label: 'Estimating',
     className: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50',
   },
-  'Awaiting Info': {
-    label: 'Awaiting Info',
+  'Awaiting Clarification': {
+    label: 'Awaiting Clarification',
     className: 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-50',
   },
-  Priced: {
-    label: 'Priced',
+  'Internal Approval': {
+    label: 'Internal Approval',
     className: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-50',
   },
-  Submitted: {
-    label: 'Submitted',
+  Quoted: {
+    label: 'Quoted',
     className: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-50',
   },
   Won: {
@@ -36,12 +40,8 @@ const statusConfig: Record<
     label: 'Lost',
     className: 'bg-red-50 text-red-600 border-red-200 hover:bg-red-50',
   },
-  'No Bid': {
-    label: 'No Bid',
-    className: 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-50',
-  },
-  Cancelled: {
-    label: 'Cancelled',
+  Withdrawn: {
+    label: 'Withdrawn',
     className: 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-50',
   },
 }

@@ -1,13 +1,12 @@
 import { Card, CardContent } from '@/components/ui/card'
 import {
-  TrendingUp,
   Clock,
   AlertCircle,
   Award,
   DollarSign,
   Percent,
 } from 'lucide-react'
-import { formatGBP, formatPercent } from '@/lib/format'
+import { formatGBP } from '@/lib/format'
 
 interface DashboardStats {
   totalLiveEnquiryValue: number
