@@ -245,13 +245,25 @@ export interface LabourRate {
   notes?: string
 }
 
+export const USER_ROLES = [
+  'Admin',
+  'Director',
+  'Estimating Manager',
+  'Senior Estimator',
+  'Estimator',
+] as const
+
+export type UserRole = (typeof USER_ROLES)[number]
+
 export interface User {
   id: string
+  userId?: string
   name: string
   initials: string
-  role: 'Estimator' | 'Senior Estimator' | 'Estimating Manager' | 'Director' | 'Admin'
+  role: UserRole
   email: string
   active: boolean
+  status?: 'invited' | 'active' | 'deactivated'
 }
 
 export interface OrgSettings {

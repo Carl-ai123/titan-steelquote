@@ -12,9 +12,12 @@ import {
   Package,
   HardHat,
   Building2,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
+import type { UserRole } from '@/lib/types'
+import { signOut } from '@/app/(auth)/login/actions'
 
 interface NavItem {
   label: string
@@ -132,7 +135,22 @@ function NavItemRow({
   )
 }
 
-export function AppSidebar() {
+function getInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+export function AppSidebar({
+  user,
+  organisationName,
+}: {
+  user: { name: string; email: string; role: UserRole }
+  organisationName: string
+}) {
   return (
     <aside
       className="fixed left-0 top-0 h-full w-56 flex flex-col bg-sidebar z-30"
@@ -145,7 +163,7 @@ export function AppSidebar() {
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-sidebar-foreground leading-tight truncate">
-            Titan Steel
+            {organisationName}
           </p>
           <p className="text-xs text-sidebar-foreground/50 leading-tight truncate">
             SteelQuote
@@ -160,21 +178,30 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      {/* Bottom user area */}
-      {/* TODO: Replace with real auth session user info */}
       <div className="border-t border-sidebar-border px-3 py-3">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center size-7 rounded-full bg-primary/20 shrink-0">
-            <span className="text-xs font-semibold text-primary-foreground/80">JH</span>
+            <span className="text-xs font-semibold text-primary-foreground/80">
+              {getInitials(user.name)}
+            </span>
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-sidebar-foreground truncate">
-              James Hartley
+              {user.name}
             </p>
             <p className="text-xs text-sidebar-foreground/50 truncate">
-              Sr. Estimator
+              {user.role}
             </p>
           </div>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="rounded p-1.5 text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              aria-label={`Sign out ${user.email}`}
+            >
+              <LogOut className="size-3.5" />
+            </button>
+          </form>
         </div>
       </div>
     </aside>
