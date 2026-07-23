@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +30,11 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import type { OrgSettings, User } from '@/lib/types'
+import {
+  inviteOrganisationUser,
+  saveOrganisationSettings,
+  setMembershipActive,
+} from '@/app/(app)/settings/actions'
 
 interface SettingsPanelProps {
   settings: OrgSettings
@@ -65,16 +71,19 @@ function SaveButton({
   section,
   saved,
   onSave,
+  disabled,
 }: {
   section: string
   saved: boolean
   onSave: (section: string) => void
+  disabled?: boolean
 }) {
   return (
     <Button
       size="sm"
       className="h-8 text-xs"
       onClick={() => onSave(section)}
+      disabled={disabled}
     >
       <Save data-icon="inline-start" className="size-3.5" />
       {saved ? 'Saved!' : 'Save Changes'}
@@ -82,37 +91,97 @@ function SaveButton({
   )
 }
 
-export function SettingsPanel({ settings: initial, users: initialUsers }: SettingsPanelProps) {
+export function SettingsPanel({
+  settings: initial,
+  users: initialUsers,
+  canManageOrganisation,
+  canManageUsers,
+  currentMembershipId,
+}: SettingsPanelProps & {
+  canManageOrganisation: boolean
+  canManageUsers: boolean
+  currentMembershipId: string
+}) {
+  const router = useRouter()
   const [settings, setSettings] = useState<OrgSettings>(initial)
   const [users, setUsers] = useState<User[]>(initialUsers)
   const [isAddingUser, setIsAddingUser] = useState(false)
   const [newUser, setNewUser] = useState<Partial<User>>({ role: 'Estimator', active: true })
   const [savedSections, setSavedSections] = useState<string[]>([])
+  const [pendingAction, setPendingAction] = useState<string | null>(null)
+  const [actionMessage, setActionMessage] = useState<{
+    ok: boolean
+    text: string
+  } | null>(null)
 
-  const handleSave = (section: string) => {
-    // TODO: PATCH /api/settings with section payload
-    setSavedSections((prev) => [...prev, section])
-    setTimeout(() => setSavedSections((prev) => prev.filter((s) => s !== section)), 2000)
-  }
+  const handleSave = async (section: string) => {
+    setPendingAction(`save-${section}`)
+    setActionMessage(null)
+    const result = await saveOrganisationSettings(settings)
+    setPendingAction(null)
+    setActionMessage({ ok: result.ok, text: result.message })
 
-  const handleAddUser = () => {
-    // TODO: POST /api/users
-    const created: User = {
-      id: `u-new-${Date.now()}`,
-      name: newUser.name ?? '',
-      initials: (newUser.name ?? '').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase(),
-      role: newUser.role ?? 'Estimator',
-      email: newUser.email ?? '',
-      active: true,
+    if (result.ok) {
+      setSavedSections((prev) => [...prev, section])
+      setTimeout(
+        () => setSavedSections((prev) => prev.filter((item) => item !== section)),
+        2000,
+      )
+      router.refresh()
     }
-    setUsers((prev) => [...prev, created])
-    setIsAddingUser(false)
-    setNewUser({ role: 'Estimator', active: true })
   }
 
-  const handleDeactivateUser = (id: string) => {
-    // TODO: PATCH /api/users/:id with active: false
-    setUsers((prev) => prev.map((u) => u.id === id ? { ...u, active: !u.active } : u))
+  const handleAddUser = async () => {
+    if (!newUser.name || !newUser.email || !newUser.role) {
+      return
+    }
+
+    setPendingAction('invite')
+    setActionMessage(null)
+    const result = await inviteOrganisationUser({
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+    })
+    setPendingAction(null)
+    setActionMessage({ ok: result.ok, text: result.message })
+
+    if (result.ok) {
+      setIsAddingUser(false)
+      setNewUser({ role: 'Estimator', active: true })
+      router.refresh()
+    }
+  }
+
+  const handleDeactivateUser = async (id: string) => {
+    const user = users.find((item) => item.id === id)
+    if (!user) {
+      return
+    }
+
+    setPendingAction(`member-${id}`)
+    setActionMessage(null)
+    const result = await setMembershipActive({
+      membershipId: id,
+      active: !user.active,
+    })
+    setPendingAction(null)
+    setActionMessage({ ok: result.ok, text: result.message })
+
+    if (result.ok) {
+      setUsers((previous) =>
+        previous.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                active: !item.active,
+                status: !item.active ? 'active' : 'deactivated',
+              }
+            : item,
+        ),
+      )
+      router.refresh()
+    }
   }
 
   return (
@@ -123,6 +192,19 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
           Organisation profile, defaults, numbering and user management
         </p>
       </div>
+
+      {actionMessage ? (
+        <div
+          role="status"
+          className={`mb-4 rounded-md border px-3 py-2 text-xs ${
+            actionMessage.ok
+              ? 'border-green-200 bg-green-50 text-green-800'
+              : 'border-red-200 bg-red-50 text-red-800'
+          }`}
+        >
+          {actionMessage.text}
+        </div>
+      ) : null}
 
       <Tabs defaultValue="organisation">
         <TabsList className="border-b border-border rounded-none bg-transparent p-0 h-auto mb-6 flex gap-0 overflow-x-auto">
@@ -242,6 +324,7 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                   section="organisation"
                   saved={savedSections.includes('organisation')}
                   onSave={handleSave}
+                  disabled={!canManageOrganisation || pendingAction !== null}
                 />
               </div>
             </CardContent>
@@ -258,7 +341,12 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                   title="Users & Roles"
                   description="Manage estimators, managers and admin access"
                 />
-                <Button size="sm" className="h-8 text-xs shrink-0" onClick={() => setIsAddingUser(true)}>
+                <Button
+                  size="sm"
+                  className="h-8 text-xs shrink-0"
+                  onClick={() => setIsAddingUser(true)}
+                  disabled={!canManageUsers || pendingAction !== null}
+                >
                   <Plus data-icon="inline-start" className="size-3.5" />
                   Add User
                 </Button>
@@ -295,9 +383,19 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                       <td className="py-3 pr-4">
                         <Badge
                           variant="outline"
-                          className={user.active ? 'text-xs bg-green-50 text-green-700 border-green-200' : 'text-xs'}
+                          className={
+                            user.status === 'invited'
+                              ? 'text-xs bg-blue-50 text-blue-700 border-blue-200'
+                              : user.active
+                                ? 'text-xs bg-green-50 text-green-700 border-green-200'
+                                : 'text-xs'
+                          }
                         >
-                          {user.active ? 'Active' : 'Inactive'}
+                          {user.status === 'invited'
+                            ? 'Invited'
+                            : user.active
+                              ? 'Active'
+                              : 'Inactive'}
                         </Badge>
                       </td>
                       <td className="py-3">
@@ -311,6 +409,12 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                             className="size-6 text-muted-foreground"
                             aria-label={user.active ? 'Deactivate user' : 'Activate user'}
                             onClick={() => handleDeactivateUser(user.id)}
+                            disabled={
+                              !canManageUsers ||
+                              user.id === currentMembershipId ||
+                              user.role === 'Admin' ||
+                              pendingAction !== null
+                            }
                           >
                             <ShieldCheck className="size-3.5" />
                           </Button>
@@ -368,6 +472,7 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                   section="numbering"
                   saved={savedSections.includes('numbering')}
                   onSave={handleSave}
+                  disabled={!canManageOrganisation || pendingAction !== null}
                 />
               </div>
             </CardContent>
@@ -438,6 +543,7 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                   section="defaults"
                   saved={savedSections.includes('defaults')}
                   onSave={handleSave}
+                  disabled={!canManageOrganisation || pendingAction !== null}
                 />
               </div>
             </CardContent>
@@ -494,6 +600,7 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                   section="financials"
                   saved={savedSections.includes('financials')}
                   onSave={handleSave}
+                  disabled={!canManageOrganisation || pendingAction !== null}
                 />
               </div>
             </CardContent>
@@ -564,7 +671,7 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
                 value={newUser.role ?? 'Estimator'}
                 onChange={(e) => setNewUser((p) => ({ ...p, role: e.target.value as User['role'] }))}
               >
-                {['Estimator', 'Senior Estimator', 'Estimating Manager', 'Director', 'Admin'].map((r) => (
+                {['Estimator', 'Senior Estimator', 'Estimating Manager', 'Director'].map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
               </select>
@@ -576,8 +683,16 @@ export function SettingsPanel({ settings: initial, users: initialUsers }: Settin
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setIsAddingUser(false)}>Cancel</Button>
-            <Button size="sm" onClick={handleAddUser} disabled={!newUser.name || !newUser.email}>
-              Add User
+            <Button
+              size="sm"
+              onClick={handleAddUser}
+              disabled={
+                !newUser.name ||
+                !newUser.email ||
+                pendingAction !== null
+              }
+            >
+              {pendingAction === 'invite' ? 'Sending…' : 'Send Invitation'}
             </Button>
           </DialogFooter>
         </DialogContent>

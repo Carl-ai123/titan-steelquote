@@ -7,8 +7,9 @@ converted into a secure, multi-tenant SaaS product through the phased
 
 ## Current phase
 
-Phase 0 stabilises the v0 prototype. It uses demonstration data and must not be
-used for live customer quotations yet.
+Phase 1 adds the secure organisation and user foundation. Enquiry, estimating
+and quotation records still use demonstration data and must not be used for live
+customer quotations yet.
 
 ## Requirements
 
@@ -21,9 +22,8 @@ used for live customer quotations yet.
 2. Copy `.env.example` to `.env.local`.
 3. Run `pnpm install --frozen-lockfile`.
 4. Run `pnpm dev`.
-5. Open `http://localhost:3000`.
-
-No environment values are required during Phase 0.
+5. Add the Phase 1 Supabase values described in `.env.example`.
+6. Open `http://localhost:3000`.
 
 ## Validation
 
@@ -33,7 +33,8 @@ Run all required checks with:
 pnpm check
 ```
 
-Pull requests run type checking, linting and a production build automatically.
+Pull requests run unit tests, type checking, linting and a production build
+automatically.
 
 ## Deployment
 
@@ -43,6 +44,16 @@ deployment occurs only from the `main` branch.
 
 Store future secrets in `.env.local` for local development and in Vercel project
 settings for hosted environments. Never commit real credentials.
+
+## Phase 1 secure access
+
+Protected routes use Supabase SSR authentication, organisation memberships,
+role permissions and row-level security. Without Supabase environment values,
+the application intentionally shows a setup-required screen instead of exposing
+the prototype.
+
+See [Phase 1 secure access setup](docs/PHASE_1_SETUP.md) for database,
+invitation and Vercel configuration.
 
 ## Roadmap
 
